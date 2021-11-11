@@ -1,0 +1,4 @@
+libsdl1.2-dev
+libsdl-ttf2.0-dev
+libncurses5-dev
+guvcview

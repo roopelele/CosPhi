@@ -347,19 +347,22 @@ int main(int argc, char* argv[])
     camera->loadConfig("../etc/camera.cfg");
 
     //determine gui size so that it fits the screen
-    while (imageHeight / guiScale > screenHeight || imageHeight / guiScale > screenWidth)
+    while (imageHeight / guiScale > screenHeight || (USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth) / guiScale > screenWidth) {
         guiScale = guiScale * 2;
+    }
 
     //initialize GUI, image structures, coordinate transformation modules
-    if (useGui)
-        gui = new CGui(imageWidth, imageHeight, guiScale);
-    image                = new CRawImage(imageWidth, imageHeight);
-    trans                = new CTransformation(imageWidth, imageHeight, circleDiameter, true);
+    if (useGui) {
+        gui = new CGui(USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth, imageHeight, guiScale);
+    }
+    image                = new CRawImage(USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth, imageHeight);
+    trans                = new CTransformation(USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth, imageHeight, circleDiameter, true);
     trans->transformType = TRANSFORM_2D; //in our case, 2D is the default
 
     //initialize the circle detectors - each circle has its own detector instance
-    for (int i = 0; i < MAX_PATTERNS; i++)
-        detectorArray[i] = new CCircleDetect(imageWidth, imageHeight, i);
+    for (int i = 0; i < MAX_PATTERNS; i++) {
+        detectorArray[i] = new CCircleDetect(USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth, imageHeight, i);
+    }
     image->getSaveNumber();
 
     //setup timers to assess system performance

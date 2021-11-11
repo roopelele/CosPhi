@@ -29,6 +29,6 @@ do
     sudo apt install $line -y
 done
 
-cd scr
+cd src
 
 make

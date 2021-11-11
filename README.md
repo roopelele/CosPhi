@@ -1,6 +1,6 @@
 ## SwarmCon - marker-based localization system for swarm robotics
 
-### What is SwarmCon ?
+### What is SwarmCon?
 SwarmCon is a minimalistic version of the <a href="http://www.youtube.com/watch?v=KgKrN8_EmUA">WhyCon</a> localization system intended for swarm applications.
 While the core of the <i>SwarmCon</i> system is the same as the <i>WhyCon</i> one, it was designed to have as least dependencies as possible.
 Moreover, the <i>SwarmCon</i> is especially intended for external localization of ground-robot swarms.
@@ -37,6 +37,9 @@ The program has a few flags to change its behaviour
 - `--nogui`: don't show the GUI
 - `--savevideo`: save video
 - `--savelog`: save log
+
+#### Server
+The program writes all the locations to `http://localhost:6666`. This can easily be read using the script `swarmcon_server.py`
 
 <hr>
 
@@ -78,7 +81,7 @@ The program has a few flags to change its behaviour
 
 #### Some additional remarks
 
-- At this point, you can start experimenting with the syste by adding whatever features you might think useful.
+- At this point, you can start experimenting with the system by adding whatever features you might think useful.
 - We have tried to comment the code so an experienced programmer should be able to alter the system accordingly. However, if you have any questions regarding the code, feel free to contact [Tom Krajnik](http://scholar.google.co.uk/citations?user=Qv3nqgsAAAAJ&hl=en&oi=ao) or [Matias Nitsche](https://scholar.google.co.uk/citations?user=Z0hQoRUAAAAJ&hl=en&oi=ao). **The Code has been modified, these are only the original authors and they might not be able to answer**
 - If you use this localization system for your research, please don't forget to cite at least one relevant paper from these [bibtex](http://raw.githubusercontent.com/wiki/gestom/CosPhi/papers/WhyCon.bib) records.
 - Have fun!
@@ -100,5 +103,5 @@ If you decide to use this software for your research, please cite <i>WhyCon</i> 
 
 ### Acknowledgements
 
-The development of this WhyCon was supported by EU within its Seventh Framework Programme project ICT-600623 ``STRANDS''.
+The development of WhyCon was supported by EU within its Seventh Framework Programme project ICT-600623 *STRANDS*.
 The Czech Republic and Argentina have given support through projects 7AMB12AR022, ARC/11/11, 13-18316P and 17-27006Y STRoLL - Spatio-Temporal Representations for Mobile Robot Navigation. We sincerely acknowledge [Jean Pierre Moreau](http://jean-pierre.moreau.pagesperso-orange.fr/infos.html) for his excellent libraries for numerical analysis that we use in our project.
