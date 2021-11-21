@@ -5,6 +5,9 @@
 // to only use one image.
 #define USE_STEREO_CAMERA false
 
+// Comment this out for normal behaviour
+//#define INVERT_COLORS
+
 // Camera resolution
 #define CAMERA_WIDTH  1920 // Pixels
 #define CAMERA_HEIGHT 1080 // Pixels

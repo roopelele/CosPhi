@@ -413,7 +413,7 @@ int main(int argc, char* argv[])
                     numStatic++;
             }
         }
-        printf("Pattern detection time: %ld us. Found: %i Static: %i. Clients %i.\n", camera->getFrameTime(), numFound, numStatic, server->numConnections);
+        printf("Found: %i Static: %i. Clients %i.\n", numFound, numStatic, server->numConnections);
         evalTime = timer.getTime();
 
         //pack up the data for sending to other systems (e.g. artificial pheromone one)
