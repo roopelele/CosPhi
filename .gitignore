@@ -1,5 +1,6 @@
-./etc/camera.cfg
-./etc/default.cal
-./bin/swarmcon
-./bin/output/**
+etc/camera.cfg
+etc/default.cal
+etc/result*
+bin/swarmcon
+bin/output/**
 *.o
