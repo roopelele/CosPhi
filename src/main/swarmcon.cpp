@@ -14,7 +14,7 @@
 #include <stdlib.h>
 
 // These variables are defined in ../config.h
-int imageWidth       = CAMERA_WIDTH;
+int imageWidth       = USE_STEREO_CAMERA ? CAMERA_WIDTH * 2 : CAMERA_WIDTH;
 int imageHeight      = CAMERA_HEIGHT;
 float circleDiameter = CIRCLE_DIAMETER;
 float fieldLength    = AREA_LENGTH;

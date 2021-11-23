@@ -3,10 +3,10 @@
 // Stereo cameras have 2 images next to each other.
 // Setting this to true cuts the image in half
 // to only use one image.
-#define USE_STEREO_CAMERA false
+#define USE_STEREO_CAMERA true
 
 // Comment this out for normal behaviour
-//#define INVERT_COLORS
+#define INVERT_COLORS
 
 // Camera resolution
 #define CAMERA_WIDTH  1920 // Pixels
@@ -17,7 +17,7 @@
 #define AREA_LENGTH 1.00 // Meters
 
 // Marker size
-#define CIRCLE_DIAMETER 0.1 // Meters
+#define CIRCLE_DIAMETER 0.075 // Meters
 
 // GUI settings
 #define SCREEN_WIDTH  1920
