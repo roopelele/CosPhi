@@ -19,6 +19,7 @@ public:
     bool loadBmp(const char* name);
     void swap();
     void swapRGB();
+    void invertColor();
 
     void plotLine(int x, int y);
     void plotCenter();

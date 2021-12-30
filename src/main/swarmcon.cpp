@@ -441,6 +441,9 @@ int main(int argc, char* argv[])
 
         //draw stuff on the GUI
         if (useGui) {
+#ifdef INVERT_COLORS
+            image->invertColor();
+#endif
             gui->drawImage(image);
             gui->drawTimeStats(evalTime, numBots);
             gui->displayHelp(displayHelp);

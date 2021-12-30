@@ -974,12 +974,14 @@ unsigned int
 Pyuv422torgb24(unsigned char* input_ptr, unsigned char* output_ptr, unsigned int image_width, unsigned int image_height, int half)
 {
     unsigned int half_width = image_width / 2;
-    unsigned int i, size;
-    unsigned char Y, Y1, U, V;
+    unsigned char Y;
+    unsigned char Y1;
+    unsigned char U;
+    unsigned char V;
     unsigned char* buff      = input_ptr;
     unsigned char* output_pt = output_ptr;
-    size                     = image_width * image_height / 2;
-    for (i = size; i > 0; i--) {
+    unsigned int size        = image_width * image_height / 2;
+    for (unsigned int i = size; i > 0; i--) {
         /* bgr instead rgb ?? */
         Y  = buff[0];
         U  = buff[1];

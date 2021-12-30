@@ -99,6 +99,16 @@ void CRawImage::swap()
     free(newData);
 }
 
+void CRawImage::invertColor()
+{
+    unsigned int pixel_count = width * height * 3;
+    for (unsigned int i = 0; i < pixel_count; i++) {
+        // Process 2 pixels every iteration
+        char val = data[i];
+        data[i]  = 255 - val;
+    }
+}
+
 void CRawImage::saveBmp(const char* inName)
 {
     FILE* file = fopen(inName, "wb");
