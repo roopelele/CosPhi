@@ -4,3 +4,4 @@ etc/result*
 bin/swarmcon
 bin/output/**
 *.o
+**/*.o
