@@ -10,7 +10,9 @@
 #include "CRawImage.h"
 #include "CTimer.h"
 #include "cmath.h"
+#include "config.h"
 #include <math.h>
+
 #define COLOR_PRECISION 32
 #define COLOR_STEP      8
 #define INNER           0

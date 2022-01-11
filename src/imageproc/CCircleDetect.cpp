@@ -245,10 +245,13 @@ void CCircleDetect::identifySegment(SSegment* segment)
         //fprintf(stderr, "dx: %f-%f=%f, dy: %f-%f=%f, distance: %f, maxdistance: %f\n", segment->r0, idx[i], dx, segment->r1, idy[i], dy, (dx * dx + dy * dy), maxDistance);
     }
     //Debug print
-    fprintf(stderr, "x: %f, y: %f, distance: %f, maxdistance: %f\n", segment->r0, segment->r1, (dx * dx + dy * dy), maxDistance);
+    if (PRINT_LOCATION) {
+        fprintf(stderr, "x: %f, y: %f, distance: %f, maxdistance: %f\n", segment->r0, segment->r1, (dx * dx + dy * dy), maxDistance);
+    }
     segment->ID = index;
-    if (segment->m1 / segment->m0 > 0.9)
+    if (segment->m1 / segment->m0 > 0.9) {
         segment->ID = -1;
+    }
 }
 
 void CCircleDetect::clearCalibMask()

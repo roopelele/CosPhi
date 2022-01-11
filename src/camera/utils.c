@@ -238,7 +238,7 @@ static int readtables(int till, int* isDHT)
 
         case M_DRI:
             //printf("find DRI \n");
-            l        = getword();
+            l = getword();
             info.dri = getword();
             break;
         case 0xff:
@@ -289,9 +289,9 @@ int jpeg_decode(unsigned char** pic, unsigned char* buf, int* width, int* height
     int mb;
     int max[6];
     ftopict convert;
-    int err           = 0;
+    int err = 0;
     int isInitHuffman = 0;
-    decdata           = (struct jpeg_decdata*)malloc(sizeof(struct jpeg_decdata));
+    decdata = (struct jpeg_decdata*)malloc(sizeof(struct jpeg_decdata));
 
     if (!decdata) {
         err = -1;
@@ -321,7 +321,7 @@ int jpeg_decode(unsigned char** pic, unsigned char* buf, int* width, int* height
         goto error;
     }
     intheight = getword();
-    intwidth  = getword();
+    intwidth = getword();
 
     if ((intheight & 7) || (intwidth & 7)) {
         err = ERR_BAD_WIDTH_OR_HEIGHT;
@@ -335,10 +335,10 @@ int jpeg_decode(unsigned char** pic, unsigned char* buf, int* width, int* height
     for (i = 0; i < info.nc; i++) {
         int h, v;
         comps[i].cid = getbyte();
-        comps[i].hv  = getbyte();
-        v            = comps[i].hv & 15;
-        h            = comps[i].hv >> 4;
-        comps[i].tq  = getbyte();
+        comps[i].hv = getbyte();
+        v = comps[i].hv & 15;
+        h = comps[i].hv >> 4;
+        comps[i].tq = getbyte();
         if (h > 3 || v > 3) {
             err = ERR_ILLEGAL_HV;
             goto error;
@@ -361,8 +361,8 @@ int jpeg_decode(unsigned char** pic, unsigned char* buf, int* width, int* height
     }
     for (i = 0; i < info.ns; i++) {
         dscans[i].cid = getbyte();
-        tdc           = getbyte();
-        tac           = tdc & 15;
+        tdc = getbyte();
+        tac = tdc & 15;
         tdc >>= 4;
         if (tdc > 1 || tac > 1) {
             err = ERR_QUANT_TABLE_SELECTOR;
@@ -375,8 +375,8 @@ int jpeg_decode(unsigned char** pic, unsigned char* buf, int* width, int* height
             err = ERR_UNKNOWN_CID_IN_SCAN;
             goto error;
         }
-        dscans[i].hv         = comps[j].hv;
-        dscans[i].tq         = comps[j].tq;
+        dscans[i].hv = comps[j].hv;
+        dscans[i].tq = comps[j].tq;
         dscans[i].hudc.dhuff = dec_huffdc + tdc;
         dscans[i].huac.dhuff = dec_huffac + tac;
     }
@@ -408,7 +408,7 @@ int jpeg_decode(unsigned char** pic, unsigned char* buf, int* width, int* height
        and pic not allocated realloc the good size and mark the change
        need 1 macroblock line more ?? */
     if (intwidth != *width || intheight != *height || *pic == NULL) {
-        *width  = intwidth;
+        *width = intwidth;
         *height = intheight;
         // BytesperPixel 2 yuyv , 3 rgb24
         *pic =
@@ -418,39 +418,39 @@ int jpeg_decode(unsigned char** pic, unsigned char* buf, int* width, int* height
 
     switch (dscans[0].hv) {
     case 0x22: // 411
-        mb      = 6;
-        mcusx   = *width >> 4;
-        mcusy   = *height >> 4;
-        bpp     = 2;
-        xpitch  = 16 * bpp;
-        pitch   = *width * bpp; // YUYV out
-        ypitch  = 16 * pitch;
+        mb = 6;
+        mcusx = *width >> 4;
+        mcusy = *height >> 4;
+        bpp = 2;
+        xpitch = 16 * bpp;
+        pitch = *width * bpp; // YUYV out
+        ypitch = 16 * pitch;
         convert = yuv420pto422;
         break;
     case 0x21: //422
                // printf("find 422 %dx%d\n",*width,*height);
-        mb      = 4;
-        mcusx   = *width >> 4;
-        mcusy   = *height >> 3;
-        bpp     = 2;
-        xpitch  = 16 * bpp;
-        pitch   = *width * bpp; // YUYV out
-        ypitch  = 8 * pitch;
+        mb = 4;
+        mcusx = *width >> 4;
+        mcusy = *height >> 3;
+        bpp = 2;
+        xpitch = 16 * bpp;
+        pitch = *width * bpp; // YUYV out
+        ypitch = 8 * pitch;
         convert = yuv422pto422;
         break;
     case 0x11: //444
-        mcusx  = *width >> 3;
-        mcusy  = *height >> 3;
-        bpp    = 2;
+        mcusx = *width >> 3;
+        mcusy = *height >> 3;
+        bpp = 2;
         xpitch = 8 * bpp;
-        pitch  = *width * bpp; // YUYV out
+        pitch = *width * bpp; // YUYV out
         ypitch = 8 * pitch;
         if (info.ns == 1) {
-            mb      = 1;
+            mb = 1;
             convert = yuv400pto422;
         }
         else {
-            mb      = 3;
+            mb = 3;
             convert = yuv444pto422;
         }
         break;
@@ -581,9 +581,9 @@ static int dec_rec2
 static void setinput(in, p) struct in* in;
 unsigned char* p;
 {
-    in->p      = p;
-    in->left   = 0;
-    in->bits   = 0;
+    in->p = p;
+    in->left = 0;
+    in->bits = 0;
     in->marker = 0;
 }
 
@@ -624,7 +624,7 @@ static int dec_readmarker(in) struct in* in;
     in->left = fillbits(in, in->left, in->bits);
     if ((m = in->marker) == 0)
         return 0;
-    in->left   = 0;
+    in->left = 0;
     in->marker = 0;
     return m;
 }
@@ -662,7 +662,7 @@ int c, i;
             in->marker = M_BADHUFF;
             return 0;
         }
-        i     = hu->vals[hu->valptr[i] + c - hu->maxcode[i - 1] * 2];
+        i = hu->vals[hu->valptr[i] + c - hu->maxcode[i - 1] * 2];
         *runp = i >> 4;
         i &= 15;
     }
@@ -704,11 +704,11 @@ int* maxp;
     memset(dct, 0, n * 64 * sizeof(*dct));
     LEBI_GET(in);
     while (n-- > 0) {
-        hu     = sc->hudc.dhuff;
+        hu = sc->hudc.dhuff;
         *dct++ = (sc->dc += DEC_REC(in, hu, r, t));
 
         hu = sc->huac.dhuff;
-        i  = 63;
+        i = 63;
         while (i > 0) {
             t = DEC_REC(in, hu, r, t);
             if (t == 0 && r == 0) {
@@ -745,7 +745,7 @@ unsigned char* huffvals;
  *  0000000000000000 0000 0000 0 0000000
  */
     code = 0;
-    k    = 0;
+    k = 0;
     for (i = 0; i < 16; i++, code <<= 1) { /* sizes */
         hu->valptr[i] = k;
         for (j = 0; j < hufflen[i]; j++) {
@@ -812,23 +812,23 @@ inline static void idct(int* in, int* out, int* quant, long off, int max)
         return;
     }
     zig2p = zig2;
-    tmpp  = tmp;
+    tmpp = tmp;
     for (i = 0; i < 8; i++) {
         j = *zig2p++;
         t0 += in[j] * (long)quant[j];
-        j  = *zig2p++;
+        j = *zig2p++;
         t5 = in[j] * (long)quant[j];
-        j  = *zig2p++;
+        j = *zig2p++;
         t2 = in[j] * (long)quant[j];
-        j  = *zig2p++;
+        j = *zig2p++;
         t7 = in[j] * (long)quant[j];
-        j  = *zig2p++;
+        j = *zig2p++;
         t1 = in[j] * (long)quant[j];
-        j  = *zig2p++;
+        j = *zig2p++;
         t4 = in[j] * (long)quant[j];
-        j  = *zig2p++;
+        j = *zig2p++;
         t3 = in[j] * (long)quant[j];
-        j  = *zig2p++;
+        j = *zig2p++;
         t6 = in[j] * (long)quant[j];
 
         if ((t1 | t2 | t3 | t4 | t5 | t6 | t7) == 0) {
@@ -848,27 +848,27 @@ inline static void idct(int* in, int* out, int* quant, long off, int max)
         }
         //IDCT;
         tmp0 = t0 + t1;
-        t1   = t0 - t1;
+        t1 = t0 - t1;
         tmp2 = t2 - t3;
-        t3   = t2 + t3;
+        t3 = t2 + t3;
         tmp2 = IMULT(tmp2, IC4) - t3;
         tmp3 = tmp0 + t3;
-        t3   = tmp0 - t3;
+        t3 = tmp0 - t3;
         tmp1 = t1 + tmp2;
         tmp2 = t1 - tmp2;
         tmp4 = t4 - t7;
-        t7   = t4 + t7;
+        t7 = t4 + t7;
         tmp5 = t5 + t6;
-        t6   = t5 - t6;
+        t6 = t5 - t6;
         tmp6 = tmp5 - t7;
-        t7   = tmp5 + t7;
+        t7 = tmp5 + t7;
         tmp5 = IMULT(tmp6, IC4);
         tmp6 = IMULT((tmp4 + t6), S22);
         tmp4 = IMULT(tmp4, (C22 - S22)) + tmp6;
-        t6   = IMULT(t6, (C22 + S22)) - tmp6;
-        t6   = t6 - t7;
-        t5   = tmp5 - t6;
-        t4   = tmp4 - t5;
+        t6 = IMULT(t6, (C22 + S22)) - tmp6;
+        t6 = t6 - t7;
+        t5 = tmp5 - t6;
+        t4 = tmp4 - t5;
 
         tmpp[0 * 8] = tmp3 + t7; //t0;
         tmpp[1 * 8] = tmp1 + t6; //t1;
@@ -891,7 +891,7 @@ inline static void idct(int* in, int* out, int* quant, long off, int max)
         t6 = tmp[j + 6];
         t7 = tmp[j + 7];
         if ((t1 | t2 | t3 | t4 | t5 | t6 | t7) == 0) {
-            te         = ITOINT(t0);
+            te = ITOINT(t0);
             out[j + 0] = te;
             out[j + 1] = te;
             out[j + 2] = te;
@@ -905,27 +905,27 @@ inline static void idct(int* in, int* out, int* quant, long off, int max)
         }
         //IDCT;
         tmp0 = t0 + t1;
-        t1   = t0 - t1;
+        t1 = t0 - t1;
         tmp2 = t2 - t3;
-        t3   = t2 + t3;
+        t3 = t2 + t3;
         tmp2 = IMULT(tmp2, IC4) - t3;
         tmp3 = tmp0 + t3;
-        t3   = tmp0 - t3;
+        t3 = tmp0 - t3;
         tmp1 = t1 + tmp2;
         tmp2 = t1 - tmp2;
         tmp4 = t4 - t7;
-        t7   = t4 + t7;
+        t7 = t4 + t7;
         tmp5 = t5 + t6;
-        t6   = t5 - t6;
+        t6 = t5 - t6;
         tmp6 = tmp5 - t7;
-        t7   = tmp5 + t7;
+        t7 = tmp5 + t7;
         tmp5 = IMULT(tmp6, IC4);
         tmp6 = IMULT((tmp4 + t6), S22);
         tmp4 = IMULT(tmp4, (C22 - S22)) + tmp6;
-        t6   = IMULT(t6, (C22 + S22)) - tmp6;
-        t6   = t6 - t7;
-        t5   = tmp5 - t6;
-        t4   = tmp4 - t5;
+        t6 = IMULT(t6, (C22 + S22)) - tmp6;
+        t6 = t6 - t7;
+        t5 = tmp5 - t6;
+        t4 = tmp4 - t5;
 
         out[j + 0] = ITOINT(tmp3 + t7);
         out[j + 1] = ITOINT(tmp1 + t6);
@@ -978,15 +978,15 @@ Pyuv422torgb24(unsigned char* input_ptr, unsigned char* output_ptr, unsigned int
     unsigned char Y1;
     unsigned char U;
     unsigned char V;
-    unsigned char* buff      = input_ptr;
+    unsigned char* buff = input_ptr;
     unsigned char* output_pt = output_ptr;
-    unsigned int size        = image_width * image_height / 2;
+    unsigned int size = image_width * image_height / 2;
     for (unsigned int i = size; i > 0; i--) {
         /* bgr instead rgb ?? */
-        Y  = buff[0];
-        U  = buff[1];
+        Y = buff[0];
+        U = buff[1];
         Y1 = buff[2];
-        V  = buff[3];
+        V = buff[3];
         buff += 4;
         if (half) {
             if ((((i * 2) - 1) / half_width) % 2 == 0) {
@@ -994,23 +994,24 @@ Pyuv422torgb24(unsigned char* input_ptr, unsigned char* output_ptr, unsigned int
             }
         }
         // Process 2 pixels every iteration
-#ifdef INVERT_COLORS
-        *output_pt++ = 255 - R_FROMYV(Y, V);
-        *output_pt++ = 255 - G_FROMYUV(Y, U, V); //b
-        *output_pt++ = 255 - B_FROMYU(Y, U);     //v
+        if (INVERT_COLORS) {
+            *output_pt++ = 255 - R_FROMYV(Y, V);
+            *output_pt++ = 255 - G_FROMYUV(Y, U, V); //b
+            *output_pt++ = 255 - B_FROMYU(Y, U);     //v
 
-        *output_pt++ = 255 - R_FROMYV(Y1, V);
-        *output_pt++ = 255 - G_FROMYUV(Y1, U, V); //b
-        *output_pt++ = 255 - B_FROMYU(Y1, U);     //v
-#else
-        *output_pt++ = R_FROMYV(Y, V);
-        *output_pt++ = G_FROMYUV(Y, U, V); //b
-        *output_pt++ = B_FROMYU(Y, U);     //v
+            *output_pt++ = 255 - R_FROMYV(Y1, V);
+            *output_pt++ = 255 - G_FROMYUV(Y1, U, V); //b
+            *output_pt++ = 255 - B_FROMYU(Y1, U);     //v
+        }
+        else {
+            *output_pt++ = R_FROMYV(Y, V);
+            *output_pt++ = G_FROMYUV(Y, U, V); //b
+            *output_pt++ = B_FROMYU(Y, U);     //v
 
-        *output_pt++ = R_FROMYV(Y1, V);
-        *output_pt++ = G_FROMYUV(Y1, U, V); //b
-        *output_pt++ = B_FROMYU(Y1, U);     //v
-#endif
+            *output_pt++ = R_FROMYV(Y1, V);
+            *output_pt++ = G_FROMYUV(Y1, U, V); //b
+            *output_pt++ = B_FROMYU(Y1, U);     //v
+        }
     }
 
     return FOUR_TWO_TWO;
@@ -1155,9 +1156,9 @@ static void yuv400pto422(int* out, unsigned char* pic, int width)
     int* outy;
     int outy1 = 0;
     int outy2 = 8;
-    pic0      = pic;
-    pic1      = pic + width;
-    outy      = out;
+    pic0 = pic;
+    pic1 = pic + width;
+    outy = out;
 
     for (j = 0; j < 4; j++) {
         for (k = 0; k < 4; k++) {
@@ -1216,7 +1217,7 @@ int get_picture(unsigned char* buf, int size)
     unsigned char *ptdeb, *ptcur = buf;
     int sizein;
     char* name = NULL;
-    name       = calloc(80, 1);
+    name = calloc(80, 1);
     getPictureName(name, 1);
     file = fopen(name, "wb");
     if (file != NULL) {
@@ -1245,8 +1246,8 @@ int get_pictureYV2(unsigned char* buf, int width, int height)
 {
     FILE* foutpict;
     unsigned char* picture = NULL;
-    char* name             = NULL;
-    name                   = calloc(80, 1);
+    char* name = NULL;
+    name = calloc(80, 1);
     getPictureName(name, 0);
     picture = (unsigned char*)malloc(width * height * 3 * sizeof(char));
     if (picture) {

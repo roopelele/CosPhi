@@ -14,25 +14,25 @@
 #include <stdlib.h>
 
 // These variables are defined in ../config.h
-int imageWidth       = USE_STEREO_CAMERA ? CAMERA_WIDTH * 2 : CAMERA_WIDTH;
-int imageHeight      = CAMERA_HEIGHT;
+int imageWidth = USE_STEREO_CAMERA ? CAMERA_WIDTH * 2 : CAMERA_WIDTH;
+int imageHeight = CAMERA_HEIGHT;
 float circleDiameter = CIRCLE_DIAMETER;
-float fieldLength    = AREA_LENGTH;
-float fieldWidth     = AREA_WIDTH;
-int screenWidth      = SCREEN_WIDTH;
-int screenHeight     = SCREEN_HEIGHT;
+float fieldLength = AREA_LENGTH;
+float fieldWidth = AREA_WIDTH;
+int screenWidth = SCREEN_WIDTH;
+int screenHeight = SCREEN_HEIGHT;
 //----------------------------------------------------------------------------
 
 /*-----These params are provided by the artificial pheromone system ----------------------
 -------change them only in the phero.cpp file, otherwise do not alter ------------------*/
 float robotDiameter = 0.00; //diameter of the pattern's outer white circle
-float robotHeight   = 0.00; //height of the robot (pattern height)
-float cameraHeight  = 1.00; //height of the camera above the field
+float robotHeight = 0.00;   //height of the robot (pattern height)
+float cameraHeight = 1.00;  //height of the camera above the field
 //----------------------------------------------------------------------------
 
 /*robot detection variables*/
-int numBots   = 0;                          //num of robots to track
-int numFound  = 0;                          //num of robots detected in the last step
+int numBots = MARKER_COUNT;                 //num of robots to track
+int numFound = 0;                           //num of robots detected in the last step
 int numStatic = 0;                          //num of non-moving robots
 CCircleDetect* detectorArray[MAX_PATTERNS]; //detector array (each pattern has its own detector)
 SSegment currentSegmentArray[MAX_PATTERNS]; //segment array (detected objects in image space)
@@ -41,38 +41,38 @@ STrackedObject objectArray[MAX_PATTERNS];   //object array (detected objects in 
 CTransformation* trans;                     //allows to transform from image to metric coordinates
 
 /*variables related to (auto) calibration*/
-const int calibrationSteps        = 20;                  //how many measurements to average to estimate calibration pattern position (manual calib)
-const int autoCalibrationSteps    = 30;                  //how many measurements to average to estimate calibration pattern position (automatic calib)
-const int autoCalibrationPreSteps = 10;                  //how many measurements to discard before starting to actually auto-calibrating (automatic calib)
-int calibNum                      = 5;                   //number of objects acquired for calibration (5 means calibration winished inactive)
-STrackedObject calib[5];                                 //array to store calibration patterns positions
-STrackedObject calibTmp[calibrationSteps];               //array to store several measurements of a given calibration pattern
-int calibStep                    = calibrationSteps + 2; //actual calibration step (num of measurements of the actual pattern)
-bool autocalibrate               = false;                //is the autocalibration in progress ?
-ETransformType lastTransformType = TRANSFORM_2D;         //pre-calibration transform (used to preserve pre-calibation transform type)
-int wasBots                      = 1;                    //pre-calibration number of robots to track (used to preserve pre-calibation number of robots to track)
+const int calibrationSteps = 20;                 //how many measurements to average to estimate calibration pattern position (manual calib)
+const int autoCalibrationSteps = 30;             //how many measurements to average to estimate calibration pattern position (automatic calib)
+const int autoCalibrationPreSteps = 10;          //how many measurements to discard before starting to actually auto-calibrating (automatic calib)
+int calibNum = 5;                                //number of objects acquired for calibration (5 means calibration winished inactive)
+STrackedObject calib[5];                         //array to store calibration patterns positions
+STrackedObject calibTmp[calibrationSteps];       //array to store several measurements of a given calibration pattern
+int calibStep = calibrationSteps + 2;            //actual calibration step (num of measurements of the actual pattern)
+bool autocalibrate = false;                      //is the autocalibration in progress ?
+ETransformType lastTransformType = TRANSFORM_2D; //pre-calibration transform (used to preserve pre-calibation transform type)
+int wasBots = 1;                                 //pre-calibration number of robots to track (used to preserve pre-calibation number of robots to track)
 
 /*program flow control*/
-bool saveVideo = false;   //save video to output folder?
-bool saveLog   = false;   //save log to output folder?
-bool stop      = false;   //stop and exit ?
-int moveVal    = 1;       //how many frames to process ?
-int moveOne    = moveVal; //how many frames to process now (setting moveOne to 0 or lower freezes the video stream)
+bool saveVideo = false; //save video to output folder?
+bool saveLog = false;   //save log to output folder?
+bool stop = false;      //stop and exit ?
+int moveVal = 1;        //how many frames to process ?
+int moveOne = moveVal;  //how many frames to process now (setting moveOne to 0 or lower freezes the video stream)
 
 /*GUI-related stuff*/
-CGui* gui;                                //drawing, events capture
-bool useGui  = false;                     //use graphic interface at all?
-int guiScale = 1;                         //in case camera resolution exceeds screen one, gui is scaled down
-SDL_Event event;                          //store mouse and keyboard events
-int keyNumber = 10000;                    //number of keys pressed in the last step
-Uint8 lastKeys[1000];                     //keys pressed in the previous step
-Uint8* keys            = NULL;            //pressed keys
-bool displayHelp       = false;           //displays some usage hints
-bool drawCoords        = true;            //draws coordinatess at the robot's positions
-TLogModule module      = LOG_MODULE_MAIN; //logging module name
-int runs               = 0;               //number of gui updates/detections performed
-int evalTime           = 0;               //time required to detect the patterns
-FILE* robotPositionLog = NULL;            //file to log robot positions
+CGui* gui;                           //drawing, events capture
+bool useGui = USE_GUI;               //use graphic interface at all?
+int guiScale = 1;                    //in case camera resolution exceeds screen one, gui is scaled down
+SDL_Event event;                     //store mouse and keyboard events
+int keyNumber = 10000;               //number of keys pressed in the last step
+Uint8 lastKeys[1000];                //keys pressed in the previous step
+Uint8* keys = NULL;                  //pressed keys
+bool displayHelp = false;            //displays some usage hints
+bool drawCoords = true;              //draws coordinatess at the robot's positions
+TLogModule module = LOG_MODULE_MAIN; //logging module name
+int runs = 0;                        //number of gui updates/detections performed
+int evalTime = 0;                    //time required to detect the patterns
+FILE* robotPositionLog = NULL;       //file to log robot positions
 
 /*communication input (camera) and output (socket server)*/
 CCamera* camera;
@@ -84,12 +84,12 @@ void manualcalibration()
 {
     if (currentSegmentArray[0].valid) {
         STrackedObject o = objectArray[0];
-        moveOne          = moveVal;
+        moveOne = moveVal;
 
         //object found - add to a buffer
-        if (calibStep < calibrationSteps)
+        if (calibStep < calibrationSteps) {
             calibTmp[calibStep++] = o;
-
+        }
         //does the buffer contain enough data to calculate the object position
         if (calibStep == calibrationSteps) {
             o.x = o.y = o.z = 0;
@@ -113,7 +113,7 @@ void manualcalibration()
                 calibNum++;
                 numBots = wasBots;
                 trans->saveCalibration("../etc/default.cal");
-                trans->transformType          = lastTransformType;
+                trans->transformType = lastTransformType;
                 detectorArray[0]->localSearch = false;
             }
             calibStep++;
@@ -126,29 +126,31 @@ void autocalibration()
 {
     bool saveVals = true;
     for (int i = 0; i < numBots; i++) {
-        if (detectorArray[i]->lastTrackOK == false)
+        if (detectorArray[i]->lastTrackOK == false) {
             saveVals = false;
+        }
     }
     if (saveVals) {
         int index[] = {0, 0, 0, 0};
         int maxEval = 0;
-        int eval    = 0;
-        int sX[]    = {-1, +1, -1, +1};
-        int sY[]    = {-1, -1, +1, +1};
+        int eval = 0;
+        int sX[] = {-1, +1, -1, +1};
+        int sY[] = {-1, -1, +1, +1};
         for (int b = 0; b < 4; b++) {
             maxEval = -10000000;
             for (int i = 0; i < numBots; i++) {
                 eval = sX[b] * currentSegmentArray[i].x + sY[b] * currentSegmentArray[i].y;
                 if (eval > maxEval) {
-                    maxEval  = eval;
+                    maxEval = eval;
                     index[b] = i;
                 }
             }
         }
         printf("INDEX: %i %i %i %i\n", index[0], index[1], index[2], index[3]);
         for (int i = 0; i < 4; i++) {
-            if (calibStep <= autoCalibrationPreSteps)
+            if (calibStep <= autoCalibrationPreSteps) {
                 calib[i].x = calib[i].y = calib[i].z = 0;
+            }
             calib[i].x += objectArray[index[i]].x;
             calib[i].y += objectArray[index[i]].y;
             calib[i].z += objectArray[index[i]].z;
@@ -167,7 +169,7 @@ void autocalibration()
             numBots = wasBots;
             trans->saveCalibration("../etc/default.cal");
             trans->transformType = lastTransformType;
-            autocalibrate        = false;
+            autocalibrate = false;
             server->finishCalibration();
         }
     }
@@ -199,25 +201,26 @@ void processKeys()
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_MOUSEBUTTONDOWN) {
             if (calibNum < 4 && calibStep > calibrationSteps) {
-                calibStep            = 0;
+                calibStep = 0;
                 trans->transformType = TRANSFORM_NONE;
             }
             if (numBots > 0) {
-                currentSegmentArray[numBots - 1].x      = event.motion.x * guiScale;
-                currentSegmentArray[numBots - 1].y      = event.motion.y * guiScale;
-                currentSegmentArray[numBots - 1].valid  = true;
+                currentSegmentArray[numBots - 1].x = event.motion.x * guiScale;
+                currentSegmentArray[numBots - 1].y = event.motion.y * guiScale;
+                currentSegmentArray[numBots - 1].valid = true;
                 detectorArray[numBots - 1]->localSearch = true;
             }
         }
     }
 
     //process keys
-    keys              = SDL_GetKeyState(&keyNumber);
+    keys = SDL_GetKeyState(&keyNumber);
     bool shiftPressed = keys[SDLK_RSHIFT] || keys[SDLK_LSHIFT];
 
     //program control - (s)top, (p)ause+move one frame and resume
-    if (keys[SDLK_ESCAPE])
+    if (keys[SDLK_ESCAPE]) {
         stop = true;
+    }
     if (keys[SDLK_SPACE] && lastKeys[SDLK_SPACE] == false) {
         moveOne = 100000000;
         moveVal = 10000000;
@@ -227,83 +230,105 @@ void processKeys()
         moveVal = 0;
     }
 
-    if (keys[SDLK_m] && lastKeys[SDLK_m] == false)
+    if (keys[SDLK_m] && lastKeys[SDLK_m] == false) {
         printf("SAVE %03f %03f %03f %03f %03f %03f %03f\n", objectArray[0].x, objectArray[0].y, objectArray[0].z, objectArray[0].error, objectArray[0].d, currentSegmentArray[0].m0, currentSegmentArray[0].m1);
-    if (keys[SDLK_n] && lastKeys[SDLK_n] == false)
+    }
+    if (keys[SDLK_n] && lastKeys[SDLK_n] == false) {
         printf("SEGM %03f %03f %03f\n", currentSegmentArray[0].x, currentSegmentArray[0].y, currentSegmentArray[0].m0);
-    if (keys[SDLK_s] && lastKeys[SDLK_s] == false)
+    }
+    if (keys[SDLK_s] && lastKeys[SDLK_s] == false) {
         image->saveBmp();
+    }
 
     //initiate autocalibration (searches for 4 outermost circular patterns and uses them to establisht the coordinate system)
     if (keys[SDLK_a] && lastKeys[SDLK_a] == false) {
-        calibStep            = 0;
-        lastTransformType    = trans->transformType;
-        wasBots              = numBots;
-        autocalibrate        = true;
+        calibStep = 0;
+        lastTransformType = trans->transformType;
+        wasBots = numBots;
+        autocalibrate = true;
         trans->transformType = TRANSFORM_NONE;
     };
 
     //manual calibration (click the 4 calibration circles with mouse)
     if (keys[SDLK_r] && lastKeys[SDLK_r] == false) {
         calibNum = 0;
-        wasBots  = numBots;
-        numBots  = 1;
+        wasBots = numBots;
+        numBots = 1;
     }
 
     //debugging - toggle drawing coordinates and debugging results results
-    if (keys[SDLK_l] && lastKeys[SDLK_l] == false)
+    if (keys[SDLK_l] && lastKeys[SDLK_l] == false) {
         drawCoords = drawCoords == false;
-    if (keys[SDLK_v] && lastKeys[SDLK_v] == false)
-        for (int i = 0; i < numBots; i++)
+    }
+    if (keys[SDLK_v] && lastKeys[SDLK_v] == false) {
+        for (int i = 0; i < numBots; i++) {
             detectorArray[i]->drawAll = detectorArray[i]->drawAll == false;
+        }
+    }
     if (keys[SDLK_d] && lastKeys[SDLK_d] == false) {
         for (int i = 0; i < numBots; i++) {
-            detectorArray[i]->draw  = detectorArray[i]->draw == false;
+            detectorArray[i]->draw = detectorArray[i]->draw == false;
             detectorArray[i]->debug = 10 - detectorArray[i]->debug;
         }
     }
 
     //transformations to use - in our case, the relevant transform is '2D'
-    if (keys[SDLK_1] && lastKeys[SDLK_1] == false)
+    if (keys[SDLK_1] && lastKeys[SDLK_1] == false) {
         trans->transformType = TRANSFORM_NONE;
-    if (keys[SDLK_2] && lastKeys[SDLK_2] == false)
+    }
+    if (keys[SDLK_2] && lastKeys[SDLK_2] == false) {
         trans->transformType = TRANSFORM_2D;
-    if (keys[SDLK_3] && lastKeys[SDLK_3] == false)
+    }
+    if (keys[SDLK_3] && lastKeys[SDLK_3] == false) {
         trans->transformType = TRANSFORM_3D;
+    }
 
     //camera low-level settings
-    if (keys[SDLK_c] && shiftPressed == false)
+    if (keys[SDLK_c] && shiftPressed == false) {
         camera->changeContrast(-1);
-    if (keys[SDLK_c] && shiftPressed == true)
+    }
+    if (keys[SDLK_c] && shiftPressed == true) {
         camera->changeContrast(1);
-    if (keys[SDLK_g] && shiftPressed == false)
+    }
+    if (keys[SDLK_g] && shiftPressed == false) {
         camera->changeGain(-1);
-    if (keys[SDLK_g] && shiftPressed == true)
+    }
+    if (keys[SDLK_g] && shiftPressed == true) {
         camera->changeGain(1);
-    if (keys[SDLK_e] && shiftPressed == false)
+    }
+    if (keys[SDLK_e] && shiftPressed == false) {
         camera->changeExposition(-1);
-    if (keys[SDLK_e] && shiftPressed == true)
+    }
+    if (keys[SDLK_e] && shiftPressed == true) {
         camera->changeExposition(1);
-    if (keys[SDLK_b] && shiftPressed == false)
+    }
+    if (keys[SDLK_b] && shiftPressed == false) {
         camera->changeBrightness(-1);
-    if (keys[SDLK_b] && shiftPressed == true)
+    }
+    if (keys[SDLK_b] && shiftPressed == true) {
         camera->changeBrightness(1);
+    }
 
     //display help
     if (keys[SDLK_h] && lastKeys[SDLK_h] == false)
         displayHelp = displayHelp == false;
 
     //adjust the number of robots to be searched for
-    if (keys[SDLK_PLUS])
+    if (keys[SDLK_PLUS]) {
         numBots++;
-    if (keys[SDLK_EQUALS])
+    }
+    if (keys[SDLK_EQUALS]) {
         numBots++;
-    if (keys[SDLK_MINUS])
+    }
+    if (keys[SDLK_MINUS]) {
         numBots--;
-    if (keys[SDLK_KP_PLUS])
+    }
+    if (keys[SDLK_KP_PLUS]) {
         numBots++;
-    if (keys[SDLK_KP_MINUS])
+    }
+    if (keys[SDLK_KP_MINUS]) {
         numBots--;
+    }
 
     //store the key states
     memcpy(lastKeys, keys, keyNumber);
@@ -312,29 +337,35 @@ void processKeys()
 //process command line arguments
 void processArgs(int argc, char* argv[])
 {
-    if (argc > 2)
+    if (argc >= 3) {
         numBots = atoi(argv[2]);
-    if (argc > 2)
-        useGui = true;
+    }
     for (int i = 3; i < argc; i++) {
-        if (strcmp(argv[i], "--nogui") == 0)
+        if (strcmp(argv[i], "--nogui") == 0) {
             useGui = false;
-        if (strcmp(argv[i], "--savelog") == 0)
+        }
+        if (strcmp(argv[i], "--gui") == 0) {
+            useGui = true;
+        }
+        if (strcmp(argv[i], "--savelog") == 0) {
             saveLog = true;
-        if (strcmp(argv[i], "--savevideo") == 0)
+        }
+        if (strcmp(argv[i], "--savevideo") == 0) {
             saveVideo = true;
+        }
     }
 }
 
 int main(int argc, char* argv[])
 {
-    //initialize logging system, camera and network connection
-    processArgs(argc, argv);
-    if (saveLog)
-        initializeLogging();
     if (argc < 2) {
         fprintf(stderr, "usage: %s imageSource num_robots\ne.g. %s /dev/video0 1\n", argv[0], argv[0]);
         return 0;
+    }
+    //initialize logging system, camera and network connection
+    processArgs(argc, argv);
+    if (saveLog) {
+        initializeLogging();
     }
     camera = new CCamera();
     server = new CPositionServer();
@@ -355,8 +386,8 @@ int main(int argc, char* argv[])
     if (useGui) {
         gui = new CGui(USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth, imageHeight, guiScale);
     }
-    image                = new CRawImage(USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth, imageHeight);
-    trans                = new CTransformation(USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth, imageHeight, circleDiameter, true);
+    image = new CRawImage(USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth, imageHeight);
+    trans = new CTransformation(USE_STEREO_CAMERA ? imageWidth / 2 : imageWidth, imageHeight, circleDiameter, true);
     trans->transformType = TRANSFORM_2D; //in our case, 2D is the default
 
     //initialize the circle detectors - each circle has its own detector instance
@@ -380,8 +411,9 @@ int main(int argc, char* argv[])
             camera->renewImage(image, moveOne-- > 0);
         }
         else {
-            if (camera->renewImage(image, moveOne-- > 0) == -1)
+            if (camera->renewImage(image, moveOne-- > 0) == -1) {
                 stop = true;
+            }
         }
         numFound = numStatic = 0;
         timer.reset();
@@ -389,7 +421,7 @@ int main(int argc, char* argv[])
         //track the robots found in the last attempt
         for (int i = 0; i < numBots; i++) {
             if (currentSegmentArray[i].valid) {
-                lastSegmentArray[i]    = currentSegmentArray[i];
+                lastSegmentArray[i] = currentSegmentArray[i];
                 currentSegmentArray[i] = detectorArray[i]->findSegment(image, lastSegmentArray[i]);
             }
         }
@@ -398,10 +430,11 @@ int main(int argc, char* argv[])
         for (int i = 0; i < numBots; i++) {
             if (currentSegmentArray[i].valid == false) {
                 lastSegmentArray[i].valid = false;
-                currentSegmentArray[i]    = detectorArray[i]->findSegment(image, lastSegmentArray[i]);
+                currentSegmentArray[i] = detectorArray[i]->findSegment(image, lastSegmentArray[i]);
             }
-            if (currentSegmentArray[i].valid == false)
+            if (currentSegmentArray[i].valid == false) {
                 break; //does not make sense to search for more patterns if the last one was not found
+            }
         }
 
         //perform transformations from camera to world coordinates
@@ -409,56 +442,65 @@ int main(int argc, char* argv[])
             if (currentSegmentArray[i].valid) {
                 objectArray[i] = trans->transform(currentSegmentArray[i], false);
                 numFound++;
-                if (currentSegmentArray[i].x == lastSegmentArray[i].x)
+                if (currentSegmentArray[i].x == lastSegmentArray[i].x) {
                     numStatic++;
+                }
             }
         }
-        printf("Found: %i Static: %i. Clients %i.\n", numFound, numStatic, server->numConnections);
         evalTime = timer.getTime();
-
+        if (PRINT_TIME) {
+            printf("Tracking took %i ms\n", evalTime / 1000);
+        }
+        if (PRINT_STATS) {
+            printf("Found: %i Static: %i. Clients %i.\n", numFound, numStatic, server->numConnections);
+        }
         //pack up the data for sending to other systems (e.g. artificial pheromone one)
         server->setNumOfPatterns(numFound, numBots, frameTime);
-        for (int i = 0; i < numBots; i++)
+        for (int i = 0; i < numBots; i++) {
             server->updatePosition(objectArray[i], i, frameTime);
+        }
         server->clearToSend();
 
         //check if there are some commands comming over the network interface - for communication with the pheromone system
         EServerCommand command = server->getCommand();
         if (command == SC_CALIBRATE) {
-            calibStep            = 0;
-            lastTransformType    = TRANSFORM_2D;
-            wasBots              = server->numObjects;
-            numBots              = wasBots + 4;
-            autocalibrate        = true;
+            calibStep = 0;
+            lastTransformType = TRANSFORM_2D;
+            wasBots = server->numObjects;
+            numBots = wasBots + 4;
+            autocalibrate = true;
             trans->transformType = TRANSFORM_NONE;
 
-            fieldLength   = server->fieldLength;
-            fieldWidth    = server->fieldWidth;
-            cameraHeight  = server->cameraHeight;
+            fieldLength = server->fieldLength;
+            fieldWidth = server->fieldWidth;
+            cameraHeight = server->cameraHeight;
             robotDiameter = server->robotDiameter;
-            robotHeight   = server->robotHeight;
+            robotHeight = server->robotHeight;
         }
 
         //draw stuff on the GUI
         if (useGui) {
-#ifdef INVERT_COLORS
-            image->invertColor();
-#endif
+            if (INVERT_COLORS) {
+                image->invertColor();
+            }
             gui->drawImage(image);
             gui->drawTimeStats(evalTime, numBots);
             gui->displayHelp(displayHelp);
             gui->guideCalibration(calibNum, fieldLength, fieldWidth);
         }
         for (int i = 0; i < numBots && useGui && drawCoords; i++) {
-            if (currentSegmentArray[i].valid)
+            if (currentSegmentArray[i].valid) {
                 gui->drawStats(currentSegmentArray[i].minx - 30, currentSegmentArray[i].maxy, objectArray[i], trans->transformType == TRANSFORM_2D);
+            }
         }
 
         //establishing the coordinate system by manual or autocalibration
-        if (autocalibrate && numFound == numBots)
+        if (autocalibrate && numFound == numBots) {
             autocalibration();
-        if (calibNum < 4)
+        }
+        if (calibNum < 4) {
             manualcalibration();
+        }
 
         for (int i = 0; i < numBots; i++) {
             //if (currentSegmentArray[i].valid) printf("Object %i %03f %03f %03f %03f %03f\n",i,objectArray[i].x,objectArray[i].y,objectArray[i].z,objectArray[i].error,objectArray[i].esterror);
@@ -469,43 +511,47 @@ int main(int argc, char* argv[])
             moveOne = moveVal;
             for (int i = 0; i < numBots; i++) {
                 //printf("Frame %i Object %03i %03i %.5f %.5f %.5f \n",frameID,i,currentSegmentArray[i].ID,objectArray[i].x,objectArray[i].y,objectArray[i].yaw);
-                if (robotPositionLog != NULL)
+                if (robotPositionLog != NULL) {
                     fprintf(robotPositionLog, "Frame %i Time %ld Object %03i %03i %.5f %.5f %.5f \n", camera->getFrameID(), camera->getFrameTime(), i, currentSegmentArray[i].ID, objectArray[i].x, objectArray[i].y, objectArray[i].yaw);
+                }
             }
         }
         else {
             //for postprocessing, try to find all robots before loading next frame
             if (numFound == numBots) {
-                //gui->saveScreen(runs++);
-                //if (camera->cameraType == CT_){
                 for (int i = 0; i < numBots; i++) {
                     //printf("Frame %i Object %03i %03i %.5f %.5f %.5f \n",frameID,i,currentSegmentArray[i].ID,objectArray[i].x,objectArray[i].y,objectArray[i].yaw);
-                    if (robotPositionLog != NULL)
+                    if (robotPositionLog != NULL) {
                         fprintf(robotPositionLog, "Frame %i Time %ld Object %03i %03i %.5f %.5f %.5f \n", camera->getFrameID(), camera->getFrameTime(), i, currentSegmentArray[i].ID, objectArray[i].x, objectArray[i].y, objectArray[i].yaw);
+                    }
                 }
                 moveOne = moveVal;
             }
             else {
-                if (moveOne-- < -100)
+                if (moveOne-- < -100) {
                     moveOne = moveVal;
+                }
             }
         }
 
         //gui->saveScreen(runs);
-        if (useGui)
+        if (useGui) {
             gui->update();
-        if (useGui)
             processKeys();
+        }
     }
-    if (robotPositionLog != NULL)
+    if (robotPositionLog != NULL) {
         fclose(robotPositionLog);
+    }
     delete server;
     runs--;
     delete image;
-    if (useGui)
+    if (useGui) {
         delete gui;
-    for (int i = 0; i < MAX_PATTERNS; i++)
+    }
+    for (int i = 0; i < MAX_PATTERNS; i++) {
         delete detectorArray[i];
+    }
     camera->saveConfig("../etc/camera.cfg");
     delete camera;
     delete trans;
