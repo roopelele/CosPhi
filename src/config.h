@@ -1,16 +1,16 @@
 #ifndef CONGIG_H
 
+//// Image processing settings
 // Stereo cameras have 2 images next to each other.
-// Setting this to true cuts the image in half
-// to only use one image.
+// Setting this to true cuts the image in half to only use one image.
 #define USE_STEREO_CAMERA true
 
-// Invert colors. 0 or 1 instead of true/false for C code
-#define INVERT_COLORS 0
+// Use inverted colors for processing. 0 or 1 instead of true/false for C code
+#define INVERT_COLORS 1
 
 // Camera resolution
-#define CAMERA_WIDTH  1280 // Pixels
-#define CAMERA_HEIGHT 720  // Pixels
+#define CAMERA_WIDTH  1920 // Pixels
+#define CAMERA_HEIGHT 1080 // Pixels
 
 // Target area size for calibration
 #define AREA_WIDTH  1.00 // Meters
@@ -24,7 +24,7 @@
 //// GUI settings
 // Default value for useGui. Can be overridden with flag --gui or --nogui
 #define USE_GUI       true
-#define SCREEN_WIDTH  1280
+#define SCREEN_WIDTH  2560
 #define SCREEN_HEIGHT 720
 
 //// Debug settings
