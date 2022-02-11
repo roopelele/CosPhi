@@ -13,6 +13,15 @@
 #include <SDL/SDL.h>
 #include <stdlib.h>
 
+#ifdef TEST_PERFORMANCE
+
+#include "perftest.h"
+
+std::vector<double> timeVector = std::vector<double>{};
+int missedFrames               = 0;
+
+#endif
+
 // These variables are defined in ../config.h
 int imageWidth = USE_STEREO_CAMERA ? CAMERA_WIDTH * 2 : CAMERA_WIDTH;
 int imageHeight = CAMERA_HEIGHT;
@@ -407,16 +416,19 @@ int main(int argc, char* argv[])
 
     int64_t frameTime = 0;
     while (stop == false) {
-        if (useGui) {
-            camera->renewImage(image, moveOne-- > 0);
+#ifdef TEST_PERFORMANCE
+        timer.reset();
+#endif
+        if (camera->renewImage(image, moveOne-- > 0) == -1) {
+            stop = true;
         }
-        else {
-            if (camera->renewImage(image, moveOne-- > 0) == -1) {
-                stop = true;
-            }
+        if (INVERT_COLORS) {
+            image->invertColor();
         }
         numFound = numStatic = 0;
+#ifndef TEST_PERFORMANCE
         timer.reset();
+#endif
         frameTime = globalTimer.getRealTime();
         //track the robots found in the last attempt
         for (int i = 0; i < numBots; i++) {
@@ -448,7 +460,7 @@ int main(int argc, char* argv[])
             }
         }
         evalTime = timer.getTime();
-        if (PRINT_TIME) {
+        if (PRINT_TIME_EVAL) {
             printf("Tracking took %i ms\n", evalTime / 1000);
         }
         if (PRINT_STATS) {
@@ -507,7 +519,7 @@ int main(int argc, char* argv[])
         }
 
         if (camera->cameraType == CT_WEBCAM) {
-            //for real camera, continue with capturing of another frame even if not all robots have been found
+            // for real camera, continue with capturing of another frame even if not all robots have been found
             moveOne = moveVal;
             for (int i = 0; i < numBots; i++) {
                 //printf("Frame %i Object %03i %03i %.5f %.5f %.5f \n",frameID,i,currentSegmentArray[i].ID,objectArray[i].x,objectArray[i].y,objectArray[i].yaw);
@@ -528,10 +540,18 @@ int main(int argc, char* argv[])
                 moveOne = moveVal;
             }
             else {
+                missedFrames++;
                 if (moveOne-- < -100) {
                     moveOne = moveVal;
                 }
             }
+        }
+        double totalTime = timer.getTime() / 1000.0;
+#ifdef TEST_PERFORMANCE
+        timeVector.push_back(totalTime);
+#endif
+        if (PRINT_TIME_TOTAL) {
+            printf("Total time: %.1f ms\n", totalTime);
         }
 
         //gui->saveScreen(runs);
@@ -540,6 +560,22 @@ int main(int argc, char* argv[])
             processKeys();
         }
     }
+#ifdef TEST_PERFORMANCE
+    int frameCount  = timeVector.size();
+    auto min_ms     = min(timeVector);
+    auto max_ms     = max(timeVector);
+    auto average_ms = average(timeVector);
+    auto median_ms  = median(timeVector);
+    auto std_ms     = standard_deviation(timeVector);
+    printf("Processed %i frames\n", frameCount);
+    printf("Detection failed %i times\n", missedFrames);
+    printf("    min: %.1f ms\n", min_ms);
+    printf("    max: %.1f ms\n", max_ms);
+    printf("    avg: %.1f ms\n", average_ms);
+    printf("\n");
+    printf("    median: %.1f ms\n", median_ms);
+    printf("    std: %.1f ms\n", std_ms);
+#endif
     if (robotPositionLog != NULL) {
         fclose(robotPositionLog);
     }

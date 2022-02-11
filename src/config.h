@@ -1,12 +1,15 @@
 #ifndef CONGIG_H
 
+// Define TEST_PERFORMANCE to measure performance
+#define TEST_PERFORMANCE
+
 //// Image processing settings
 // Stereo cameras have 2 images next to each other.
 // Setting this to true cuts the image in half to only use one image.
-#define USE_STEREO_CAMERA true
+#define USE_STEREO_CAMERA false
 
-// Use inverted colors for processing. 0 or 1 instead of true/false for C code
-#define INVERT_COLORS 1
+// Use inverted colors for processing.
+#define INVERT_COLORS true
 
 // Camera resolution
 #define CAMERA_WIDTH  1920 // Pixels
@@ -25,12 +28,24 @@
 // Default value for useGui. Can be overridden with flag --gui or --nogui
 #define USE_GUI       true
 #define SCREEN_WIDTH  2560
-#define SCREEN_HEIGHT 720
+#define SCREEN_HEIGHT 1440
 
 //// Debug settings
-#define PRINT_LOCATION false
-#define PRINT_TIME     true
-#define PRINT_STATS    false
+#ifndef TEST_PERFORMANCE
+
+#define PRINT_LOCATION   false
+#define PRINT_TIME_EVAL  false
+#define PRINT_TIME_TOTAL true
+#define PRINT_STATS      false
+
+#else
+
+#define PRINT_LOCATION   false
+#define PRINT_TIME_EVAL  false
+#define PRINT_TIME_TOTAL false
+#define PRINT_STATS      false
+
+#endif
 
 #define CONFIG_H
 #endif
