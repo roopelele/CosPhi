@@ -17,7 +17,6 @@
 #define COLOR_STEP      8
 #define INNER           0
 #define OUTER           1
-#define MAX_PATTERNS    50
 
 typedef struct {
     float x;
@@ -64,7 +63,7 @@ public:
     bool draw;
     bool drawAll;
     bool lastTrackOK;
-    int debug;
+    int m_debug;
     bool localSearch;
 
 private:
@@ -74,6 +73,7 @@ private:
     int m_threshold;
 
     int m_minSize;
+    int m_maxSize;
     int m_lastThreshold;
     int m_thresholdBias;
     int m_maxThreshold;

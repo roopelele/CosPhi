@@ -277,7 +277,7 @@ void processKeys()
     if (keys[SDLK_d] && lastKeys[SDLK_d] == false) {
         for (int i = 0; i < numBots; i++) {
             detectorArray[i]->draw = detectorArray[i]->draw == false;
-            detectorArray[i]->debug = 10 - detectorArray[i]->debug;
+            detectorArray[i]->m_debug = 10 - detectorArray[i]->m_debug;
         }
     }
 
@@ -434,19 +434,11 @@ int main(int argc, char* argv[])
         for (int i = 0; i < numBots; i++) {
             if (currentSegmentArray[i].valid) {
                 lastSegmentArray[i] = currentSegmentArray[i];
-                currentSegmentArray[i] = detectorArray[i]->findSegment(image, lastSegmentArray[i]);
             }
-        }
-
-        //search for untracked (not detected in the last frame) robots
-        for (int i = 0; i < numBots; i++) {
-            if (currentSegmentArray[i].valid == false) {
+            else {
                 lastSegmentArray[i].valid = false;
-                currentSegmentArray[i] = detectorArray[i]->findSegment(image, lastSegmentArray[i]);
             }
-            if (currentSegmentArray[i].valid == false) {
-                break; //does not make sense to search for more patterns if the last one was not found
-            }
+            currentSegmentArray[i] = detectorArray[i]->findSegment(image, lastSegmentArray[i]);
         }
 
         //perform transformations from camera to world coordinates
@@ -460,35 +452,20 @@ int main(int argc, char* argv[])
             }
         }
         evalTime = timer.getTime();
-        if (PRINT_TIME_EVAL) {
-            printf("Tracking took %i ms\n", evalTime / 1000);
+        moveOne  = moveVal;
+        for (int i = 0; i < numBots; i++) {
+            if (robotPositionLog != NULL) {
+                fprintf(robotPositionLog, "Frame %i Time %ld Object %03i %03i %.5f %.5f %.5f \n", camera->getFrameID(), camera->getFrameTime(), i, currentSegmentArray[i].ID, objectArray[i].x, objectArray[i].y, objectArray[i].yaw);
+            }
         }
-        if (PRINT_STATS) {
-            printf("Found: %i Static: %i. Clients %i.\n", numFound, numStatic, server->numConnections);
-        }
+        double totalTime = timer.getTime() / 1000.0;
         //pack up the data for sending to other systems (e.g. artificial pheromone one)
+#ifndef TEST_PERFORMANCE
         server->setNumOfPatterns(numFound, numBots, frameTime);
         for (int i = 0; i < numBots; i++) {
             server->updatePosition(objectArray[i], i, frameTime);
         }
         server->clearToSend();
-
-        //check if there are some commands comming over the network interface - for communication with the pheromone system
-        EServerCommand command = server->getCommand();
-        if (command == SC_CALIBRATE) {
-            calibStep = 0;
-            lastTransformType = TRANSFORM_2D;
-            wasBots = server->numObjects;
-            numBots = wasBots + 4;
-            autocalibrate = true;
-            trans->transformType = TRANSFORM_NONE;
-
-            fieldLength = server->fieldLength;
-            fieldWidth = server->fieldWidth;
-            cameraHeight = server->cameraHeight;
-            robotDiameter = server->robotDiameter;
-            robotHeight = server->robotHeight;
-        }
 
         //draw stuff on the GUI
         if (useGui) {
@@ -499,10 +476,10 @@ int main(int argc, char* argv[])
             gui->drawTimeStats(evalTime, numBots);
             gui->displayHelp(displayHelp);
             gui->guideCalibration(calibNum, fieldLength, fieldWidth);
-        }
-        for (int i = 0; i < numBots && useGui && drawCoords; i++) {
-            if (currentSegmentArray[i].valid) {
-                gui->drawStats(currentSegmentArray[i].minx - 30, currentSegmentArray[i].maxy, objectArray[i], trans->transformType == TRANSFORM_2D);
+            for (int i = 0; i < numBots && drawCoords; i++) {
+                if (currentSegmentArray[i].valid) {
+                    gui->drawStats(currentSegmentArray[i].minx - 30, currentSegmentArray[i].maxy, objectArray[i], trans->transformType == TRANSFORM_2D);
+                }
             }
         }
 
@@ -513,43 +490,19 @@ int main(int argc, char* argv[])
         if (calibNum < 4) {
             manualcalibration();
         }
-
-        for (int i = 0; i < numBots; i++) {
-            //if (currentSegmentArray[i].valid) printf("Object %i %03f %03f %03f %03f %03f\n",i,objectArray[i].x,objectArray[i].y,objectArray[i].z,objectArray[i].error,objectArray[i].esterror);
-        }
-
-        if (camera->cameraType == CT_WEBCAM) {
-            // for real camera, continue with capturing of another frame even if not all robots have been found
-            moveOne = moveVal;
-            for (int i = 0; i < numBots; i++) {
-                //printf("Frame %i Object %03i %03i %.5f %.5f %.5f \n",frameID,i,currentSegmentArray[i].ID,objectArray[i].x,objectArray[i].y,objectArray[i].yaw);
-                if (robotPositionLog != NULL) {
-                    fprintf(robotPositionLog, "Frame %i Time %ld Object %03i %03i %.5f %.5f %.5f \n", camera->getFrameID(), camera->getFrameTime(), i, currentSegmentArray[i].ID, objectArray[i].x, objectArray[i].y, objectArray[i].yaw);
-                }
-            }
-        }
-        else {
-            //for postprocessing, try to find all robots before loading next frame
-            if (numFound == numBots) {
-                for (int i = 0; i < numBots; i++) {
-                    //printf("Frame %i Object %03i %03i %.5f %.5f %.5f \n",frameID,i,currentSegmentArray[i].ID,objectArray[i].x,objectArray[i].y,objectArray[i].yaw);
-                    if (robotPositionLog != NULL) {
-                        fprintf(robotPositionLog, "Frame %i Time %ld Object %03i %03i %.5f %.5f %.5f \n", camera->getFrameID(), camera->getFrameTime(), i, currentSegmentArray[i].ID, objectArray[i].x, objectArray[i].y, objectArray[i].yaw);
-                    }
-                }
-                moveOne = moveVal;
-            }
-            else {
-                missedFrames++;
-                if (moveOne-- < -100) {
-                    moveOne = moveVal;
-                }
-            }
-        }
-        double totalTime = timer.getTime() / 1000.0;
+#endif
 #ifdef TEST_PERFORMANCE
+        if (numFound != numBots) {
+            missedFrames++;
+        }
         timeVector.push_back(totalTime);
 #endif
+        if (PRINT_STATS) {
+            printf("Found: %i Static: %i. Clients %i.\n", numFound, numStatic, server->numConnections);
+        }
+        if (PRINT_TIME_EVAL) {
+            printf("Tracking took %i ms\n", evalTime / 1000);
+        }
         if (PRINT_TIME_TOTAL) {
             printf("Total time: %.1f ms\n", totalTime);
         }

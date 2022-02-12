@@ -1,7 +1,7 @@
 #ifndef CONGIG_H
 
 // Define TEST_PERFORMANCE to measure performance
-#define TEST_PERFORMANCE
+//#define TEST_PERFORMANCE
 
 //// Image processing settings
 // Stereo cameras have 2 images next to each other.
@@ -21,14 +21,18 @@
 
 // Amount of markers to track
 #define MARKER_COUNT 4
+#define MAX_PATTERNS 12
 // Marker size
 #define CIRCLE_DIAMETER 0.075 // Meters
 
 //// GUI settings
 // Default value for useGui. Can be overridden with flag --gui or --nogui
 #define USE_GUI       true
-#define SCREEN_WIDTH  2560
-#define SCREEN_HEIGHT 1440
+#define SCREEN_WIDTH  1920
+#define SCREEN_HEIGHT 1080
+
+#define DEBUG_LEVEL   0
+#define DRAW_SEGMENTS false
 
 //// Debug settings
 #ifndef TEST_PERFORMANCE
