@@ -1,5 +1,8 @@
 #include "CCircleDetect.h"
 
+#include <chrono> // std::chrono::seconds
+#include <thread> // std::this_thread::sleep_for
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -8,13 +11,13 @@ int* CCircleDetect::queue = NULL;
 int* CCircleDetect::mask = NULL;
 int CCircleDetect::maskNum = 0;
 
-//Variable initialization
+// Variable initialization
 CCircleDetect::CCircleDetect(int wi, int he, int idi)
+    : m_enableCorrections(false)
 {
-    localSearch = false;
+    m_localSearch = false;
     m_ID = idi;
     m_numberIDs = 0;
-    m_enableCorrections = false;
     lastTrackOK = false;
     m_debug = DEBUG_LEVEL;
     draw = DRAW_SEGMENTS;
@@ -32,7 +35,7 @@ CCircleDetect::CCircleDetect(int wi, int he, int idi)
     m_track = true;
     m_circularityTolerance = 0.02;
 
-    //initialization - fixed params
+    // initialization - fixed params
     m_width = wi;
     m_height = he;
     m_len = m_width * m_height;
@@ -74,7 +77,8 @@ bool CCircleDetect::changeThreshold()
         div *= 2;
     }
     int step = 256 / div;
-    m_threshold = 3 * (step * (m_numFailed - div) + step / 2);
+    setThreshold(3 * (step * (m_numFailed - div) + step / 2));
+
     if (m_debug > 5)
         fprintf(stdout, "Threshold: %i %i %i\n", div, m_numFailed, m_threshold / 3);
     return step > 8;
@@ -99,13 +103,13 @@ bool CCircleDetect::examineSegment(CRawImage* image, SSegment* segmen, int ii, f
     miny = maxy = segmen->y;
     segmen->valid = false;
     segmen->round = false;
-    //push segment coords to the queue
+    // push segment coords to the queue
     queue[m_queueEnd++] = ii;
-    //and until queue is empty
+    // and until queue is empty
     while (m_queueEnd > m_queueStart) {
-        //pull the coord from the queue
+        // pull the coord from the queue
         position = queue[m_queueStart++];
-        //search neighbours
+        // search neighbours
         pos = position + 1;
         if (buffer[pos] == 0) {
             m_ptr = &image->data[pos * 3];
@@ -148,10 +152,10 @@ bool CCircleDetect::examineSegment(CRawImage* image, SSegment* segmen, int ii, f
         }
     }
 
-    //once the queue is empty, i.e. segment is complete, we compute its size
+    // once the queue is empty, i.e. segment is complete, we compute its size
     segmen->size = m_queueEnd - m_queueOldStart;
     if (segmen->size > m_minSize) {
-        //and if its large enough, we compute its other properties
+        // and if its large enough, we compute its other properties
         segmen->maxx = maxx;
         segmen->maxy = maxy;
         segmen->minx = minx;
@@ -162,9 +166,9 @@ bool CCircleDetect::examineSegment(CRawImage* image, SSegment* segmen, int ii, f
         segmen->x = (segmen->maxx + segmen->minx) / 2;
         segmen->y = (segmen->maxy + segmen->miny) / 2;
         segmen->roundness = vx * vy * areaRatio / segmen->size;
-        //we check if the segment is likely to be a ring
+        // we check if the segment is likely to be a ring
         if (segmen->roundness - m_circularTolerance < 1.0 && segmen->roundness + m_circularTolerance > 1.0) {
-            //if its round, we compute yet another properties
+            // if its round, we compute yet another properties
             segmen->round = true;
             segmen->mean = 0;
             for (int p = m_queueOldStart; p < m_queueEnd; p++) {
@@ -174,6 +178,10 @@ bool CCircleDetect::examineSegment(CRawImage* image, SSegment* segmen, int ii, f
             segmen->mean = segmen->mean / segmen->size;
             result = true;
         }
+    }
+    if (result && m_debug > 0) {
+        fprintf(stdout, "found circle in (%i, %i) \n", (maxx + minx) / 2, (maxy + miny) / 2);
+        fprintf(stdout, "    mean color: %i \n", segmen->mean);
     }
     m_timb += m_timer.getTime();
     return result;
@@ -241,10 +249,10 @@ void CCircleDetect::identifySegment(SSegment* segment)
             maxDistance = dx * dx + dy * dy;
             index = i;
         }
-        //Debug print
-        //fprintf(stderr, "dx: %f-%f=%f, dy: %f-%f=%f, distance: %f, maxdistance: %f\n", segment->r0, idx[i], dx, segment->r1, idy[i], dy, (dx * dx + dy * dy), maxDistance);
+        // Debug print
+        // fprintf(stderr, "dx: %f-%f=%f, dy: %f-%f=%f, distance: %f, maxdistance: %f\n", segment->r0, idx[i], dx, segment->r1, idy[i], dy, (dx * dx + dy * dy), maxDistance);
     }
-    //Debug print
+    // Debug print
     if (PRINT_LOCATION) {
         fprintf(stderr, "x: %f, y: %f, distance: %f, maxdistance: %f\n", segment->r0, segment->r1, (dx * dx + dy * dy), maxDistance);
     }
@@ -308,7 +316,7 @@ SSegment CCircleDetect::calcSegment(SSegment segment, int size, long int x, long
         else
             result.v1 = 1.0;
     }
-    //printf("An: %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n",det,result.v0,result.v1,fm0,fm1,fm2,f0,f1);
+    // printf("An: %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n",det,result.v0,result.v1,fm0,fm1,fm2,f0,f1);
     return result;
 }
 
@@ -324,7 +332,7 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
     int start = 0;
     bool cont = true;
 
-    //bufferCleanup(init);
+    // bufferCleanup(init);
     if (init.valid && m_track) {
         ii = ((int)init.y) * image->width + init.x;
         start = ii;
@@ -332,15 +340,22 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
     while (cont) {
         if (buffer[ii] == 0) {
             m_ptr = &image->data[ii * 3];
-            //buffer[ii]=((m_ptr[0]+m_ptr[1]+m_ptr[2]) > m_threshold)-2;
-            if ((m_ptr[0] + m_ptr[1] + m_ptr[2]) < m_threshold)
+            // buffer[ii]=((m_ptr[0]+m_ptr[1]+m_ptr[2]) > m_threshold)-2;
+            if ((m_ptr[0] + m_ptr[1] + m_ptr[2]) < m_threshold) {
+                if (m_debug > 2) {
+                    fprintf(stdout, "(%i, %i) : %i + %i + %i = %i\n", (ii % m_width), (ii / m_width), m_ptr[0], m_ptr[1], m_ptr[2], m_ptr[0] + m_ptr[1] + m_ptr[2]);
+                }
                 buffer[ii] = -2;
+            }
         }
         if (buffer[ii] == -2) {
-            //new segment found
+            if (m_debug > 2) {
+                fprintf(stdout, "new segment in (%i, %i)\n", (ii % m_width), (ii / m_width));
+            }
+            // new segment found
             m_queueEnd = 0;
             m_queueStart = 0;
-            //if the segment looks like a ring, we check its inside area
+            // if the segment looks like a ring, we check its inside area
             if (examineSegment(image, &m_outer, ii, m_outerAreaRatio)) {
                 pos = m_outer.y * image->width + m_outer.x;
                 if (buffer[pos] == 0) {
@@ -349,21 +364,24 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
                 }
                 if (buffer[pos] == -1) {
                     if (examineSegment(image, &m_inner, pos, m_innerAreaRatio)) {
-                        //the inside area is a circle. now what is the area ratio of the black and white ? also, are the circles concentric ?
+                        // the inside area is a circle. now what is the area ratio of the black and white ? also, are the circles concentric ?
 
-                        if (m_debug > 5)
+                        if (m_debug > 5) {
                             printf("Area ratio should be %.3f, but is %.3f, that is %.0f%% off. ", m_areasRatio, (float)m_outer.size / m_inner.size, (1 - m_outer.size / m_areasRatio / m_inner.size) * 100);
-                        if ((float)m_outer.size / m_areasRatio / (float)m_inner.size - m_ratioTolerance < 1.0 && (float)m_outer.size / m_areasRatio / (float)m_inner.size + m_ratioTolerance > 1.0) {
-                            if (m_debug > 5)
+                        }
+                        float concentricity = (float)m_outer.size / m_areasRatio / (float)m_inner.size;
+                        if (concentricity - m_ratioTolerance < 1.0 && concentricity + m_ratioTolerance > 1.0) {
+                            if (m_debug > 5) {
                                 fprintf(stdout, "Segment BW ratio OK.\n");
-                            if (m_debug > 5)
+                            }
+                            if (m_debug > 5) {
                                 fprintf(stdout, "Concentricity %.0f %.0f %.0f %.0f.", m_inner.x, m_inner.y, m_outer.x, m_outer.y);
+                            }
                             if ((abs(m_inner.x - m_outer.x) <= m_centerDistanceToleranceAbs + m_centerDistanceToleranceRatio * ((float)(m_outer.maxx - m_outer.minx))) &&
-                                (abs(m_inner.y - m_outer.y) <= m_centerDistanceToleranceAbs + m_centerDistanceToleranceRatio * ((float)(m_outer.maxy - m_outer.miny))))
-
-                            {
-                                if (m_debug > 5)
+                                (abs(m_inner.y - m_outer.y) <= m_centerDistanceToleranceAbs + m_centerDistanceToleranceRatio * ((float)(m_outer.maxy - m_outer.miny)))) {
+                                if (m_debug > 5) {
                                     fprintf(stdout, "Concentricity OK.\n");
+                                }
                                 long int six, siy, tx, ty, cm0, cm1, cm2;
                                 six = siy = cm0 = cm1 = cm2 = 0;
 
@@ -378,8 +396,8 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
                                     cm2 += ty * ty;
                                 }
                                 m_inner = calcSegment(m_inner, m_queueEnd - m_queueOldStart, six, siy, cm0, cm1, cm2);
-                                //m_inner.x = (float)six/(m_queueEnd-m_queueOldStart);
-                                //m_inner.y = (float)siy/(m_queueEnd-m_queueOldStart);
+                                // m_inner.x = (float)six/(m_queueEnd-m_queueOldStart);
+                                // m_inner.y = (float)siy/(m_queueEnd-m_queueOldStart);
 
                                 for (int p = 0; p < m_queueOldStart; p++) {
                                     pos = queue[p];
@@ -394,14 +412,14 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
                                 m_outer = calcSegment(m_outer, m_queueEnd, six, siy, cm0, cm1, cm2);
                                 m_outer.bwRatio = (float)m_inner.size / m_outer.size;
 
-                                m_sizer += m_outer.size + m_inner.size; //for debugging
-                                m_sizerAll += m_len;                    //for debugging
+                                m_sizer += m_outer.size + m_inner.size; // for debugging
+                                m_sizerAll += m_len;                    // for debugging
                                 float circularity = M_PI * 4 * (m_outer.m0) * (m_outer.m1) / m_queueEnd;
                                 if (m_debug > 5)
                                     fprintf(stdout, "Segment circularity: %i %03f %03f \n", m_queueEnd, M_PI * 4 * (m_outer.m0) * (m_outer.m1) / m_queueEnd, M_PI * 4 * (m_outer.m0) * (m_outer.m1));
                                 if (circularity - 1.0 < m_circularityTolerance && circularity - 1.0 > -m_circularityTolerance) {
 
-                                    //chromatic aberation correction
+                                    // chromatic aberation correction
                                     if (m_enableCorrections) {
                                         float r = m_diameterRatio * m_diameterRatio;
                                         float m0o = m_outer.m0;
@@ -413,17 +431,17 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
                                         float b = -(m0i + m1i) - (m0o + m1o) * r;
                                         float c = (m0i * m1i) - (m0o * m1o) * r;
                                         float t = (-b - sqrt(b * b - 4 * a * c)) / (2 * a);
-                                        //plc second version
-                                        //float t0 = (-b-sqrt(b*b-4*a*c))/(2*a);
-                                        //float t1 = (-b+sqrt(b*b-4*a*c))/(2*a);
-                                        //if (m1i - t0 > 0 && m1i - t1 >0) printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
-                                        //float t0 = (m0i-m_diameterRatio*m0o)/(1+m_diameterRatio);
-                                        //float t1 = (m1i-m_diameterRatio*m1o)/(1+m_diameterRatio);
+                                        // plc second version
+                                        // float t0 = (-b-sqrt(b*b-4*a*c))/(2*a);
+                                        // float t1 = (-b+sqrt(b*b-4*a*c))/(2*a);
+                                        // if (m1i - t0 > 0 && m1i - t1 >0) printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+                                        // float t0 = (m0i-m_diameterRatio*m0o)/(1+m_diameterRatio);
+                                        // float t1 = (m1i-m_diameterRatio*m1o)/(1+m_diameterRatio);
                                         m0i -= t;
                                         m1i -= t;
                                         m0o += t;
                                         m1o += t;
-                                        //fprintf(stdout,"UUU: %f R: %f %f R: %f %f\n",t,m1i/m1o*0.14,m0i/m0o*0.14,(m0o*m1o-m0i*m1i)/(m0i*m1i),(0.14*0.14-0.05*0.05)/(0.05*0.05));
+                                        // fprintf(stdout,"UUU: %f R: %f %f R: %f %f\n",t,m1i/m1o*0.14,m0i/m0o*0.14,(m0o*m1o-m0i*m1i)/(m0i*m1i),(0.14*0.14-0.05*0.05)/(0.05*0.05));
                                         m_inner.m0 = m0o;
                                         m_inner.m1 = m1o;
                                     }
@@ -439,68 +457,77 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
                                     }
                                     float orient = atan2(m_outer.y - m_inner.y, m_outer.x - m_inner.x);
                                     m_outer.angle = atan2(m_outer.v1, m_outer.v0);
-                                    if (m_debug > 5)
+                                    if (m_debug > 5) {
                                         printf("Angle: %.3f %.3f \n", m_outer.angle, orient);
-                                    if (fabs(normalizeAngle(m_outer.angle - orient)) > M_PI / 2)
+                                    }
+                                    if (fabs(normalizeAngle(m_outer.angle - orient)) > M_PI / 2) {
                                         m_outer.angle = normalizeAngle(m_outer.angle + M_PI);
+                                    }
 
-                                    //fiducial identification - experimental only
+                                    // fiducial identification - experimental only
                                     identifySegment(&m_outer);
-                                    //if (lastTrackOK == false) identifySegment(&m_outer);
-                                    //m_outer.m_ID =m_ID;
+                                    // if (lastTrackOK == false) identifySegment(&m_outer);
+                                    // m_outer.m_ID =m_ID;
                                     m_outer.valid = m_inner.valid = true;
-                                    m_threshold = (m_outer.mean + m_inner.mean) / 2;
-                                    if (m_track)
+                                    setThreshold((m_outer.mean + m_inner.mean) / 2);
+                                    if (m_track) {
                                         ii = start - 1;
+                                    }
                                 }
                                 else {
                                     if (m_track && init.valid) {
                                         ii = start - 1;
-                                        if (m_debug > 0)
+                                        if (m_debug > 0) {
                                             fprintf(stdout, "Segment failed circularity test.\n");
+                                        }
                                     }
                                 }
                             }
                             else {
                                 if (m_track && init.valid) {
                                     ii = start - 1;
-                                    if (m_debug > 0)
+                                    if (m_debug > 0) {
                                         fprintf(stdout, "Segment failed concentricity test.\n");
+                                    }
                                 }
                             }
                         }
                         else {
-                            //tracking failed
+                            // tracking failed
                             if (m_track && init.valid) {
                                 ii = start - 1;
-                                if (m_debug > 0)
+                                if (m_debug > 0) {
                                     fprintf(stdout, "Segment failed BW test.\n");
+                                }
                             }
                         }
                     }
                     else {
-                        //tracking failed
+                        // tracking failed
                         if (m_track && init.valid) {
                             ii = start - 1;
-                            if (m_debug > 0)
+                            if (m_debug > 0) {
                                 printf("Inner segment not a circle\n");
+                            }
                         }
                     }
                 }
                 else {
                     if (m_track && init.valid) {
                         ii = start - 1;
-                        if (m_debug > 0)
+                        if (m_debug > 0) {
                             printf("Inner segment not white %i %i %i\n", m_threshold, m_ptr[0] + m_ptr[1] + m_ptr[2], m_outer.size);
+                        }
                     }
                 }
             }
             else {
-                //tracking failed
+                // tracking failed
                 if (m_track && init.valid) {
                     ii = start - 1;
-                    if (m_debug > 0)
+                    if (m_debug > 0) {
                         printf("Outer segment %.0f %.0f %i not a circle\n", m_outer.x, m_outer.y, m_outer.size);
+                    }
                 }
             }
         }
@@ -518,27 +545,31 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
     if (m_outer.valid) {
         if (m_numSegments == 2) {
             lastTrackOK = true;
-            localSearch = false;
+            m_localSearch = false;
         }
         else {
             lastTrackOK = false;
-            if (localSearch)
+            if (m_localSearch) {
                 m_outer.valid = false;
+            }
         }
     }
-    //m_threshold management
+    // m_threshold management
     if (m_outer.valid) {
         m_lastThreshold = m_threshold;
         drawAll = false;
         m_numFailed = 0;
     }
     else if (m_numFailed < m_maxFailed) {
-        if (m_numFailed++ % 2 == 0)
+        if (m_numFailed++ % 2 == 0) {
             changeThreshold();
-        else
-            m_threshold = m_lastThreshold;
-        if (m_debug > 5)
+        }
+        else {
+            setThreshold(m_lastThreshold);
+        }
+        if (m_debug > 5) {
             drawAll = true;
+        }
     }
     else {
         m_numFailed++;
@@ -548,7 +579,7 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
             drawAll = true;
     }
 
-    //Drawing results
+    // Drawing results
     if (m_outer.valid) {
         for (int p = m_queueOldStart; p < m_queueEnd; p++) {
             pos = queue[p];
@@ -573,4 +604,18 @@ SSegment CCircleDetect::findSegment(CRawImage* image, SSegment init)
     }
     bufferCleanup(m_outer);
     return m_outer;
+}
+
+void CCircleDetect::setThreshold(int val)
+{
+    m_threshold = val;
+    if (m_threshold > m_maxThreshold) {
+        m_threshold = m_maxThreshold;
+    }
+    else if (m_threshold < 0) {
+        m_threshold = 0;
+    }
+    if (m_debug > 1) {
+        fprintf(stdout, "set threshold to %i\n", m_threshold);
+    }
 }

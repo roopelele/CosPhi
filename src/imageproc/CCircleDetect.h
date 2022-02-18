@@ -64,9 +64,11 @@ public:
     bool drawAll;
     bool lastTrackOK;
     int m_debug;
-    bool localSearch;
+    bool m_localSearch;
 
 private:
+    void setThreshold(int val);
+
     bool m_track;
     int m_maxFailed;
     int m_numFailed;
@@ -84,7 +86,7 @@ private:
     float m_ratioTolerance;
     float m_centerDistanceToleranceRatio;
     int m_centerDistanceToleranceAbs;
-    bool m_enableCorrections;
+    const bool m_enableCorrections;
 
     int m_ID;
     SSegment m_inner;

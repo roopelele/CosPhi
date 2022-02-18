@@ -17,17 +17,17 @@ extern "C" {
 //-----------------------------------------------------------------------------
 CCamera::CCamera()
 {
-    cameraType   = CT_UNKNOWN;
-    aviBuffer1   = NULL;
-    aviBuffer2   = NULL;
+    cameraType = CT_UNKNOWN;
+    aviBuffer1 = NULL;
+    aviBuffer2 = NULL;
     autoexposure = true;
     gain = exposition = 0;
     width = height = 0;
-    exposition     = 0;
-    fileNum        = 1;
-    frameRate      = -1;
-    videoIn        = (struct vdIn*)calloc(1, sizeof(struct vdIn));
-    frameID        = 0;
+    exposition = 0;
+    fileNum = 1;
+    frameRate = -1;
+    videoIn = (struct vdIn*)calloc(1, sizeof(struct vdIn));
+    frameID = 0;
     globalTimer.reset();
     globalTimer.start();
     return;
@@ -78,14 +78,14 @@ long int CCamera::getFrameTime()
 int CCamera::init(const char* deviceName, int* wi, int* he, bool saveI)
 {
     save = saveI;
-    //format = V4L2_PIX_FMT_YUYV;
+    // format = V4L2_PIX_FMT_YUYV;
     format = V4L2_PIX_FMT_MJPEG;
 
     if (save)
         videoIn->toggleAvi = 1;
     else
         videoIn->toggleAvi = 0;
-    const float fps       = 30.0;
+    const float fps = 30.0;
     const int grabemethod = 1;
 
     time_t timeNow;
@@ -111,14 +111,14 @@ int CCamera::init(const char* deviceName, int* wi, int* he, bool saveI)
         initLut();
 
         // gets camera parameters
-        gain       = getDeviceGain();
+        gain = getDeviceGain();
         exposition = getDeviceExposition();
         brightness = getDeviceBrightness();
 
         int min, max, def;
         min = max = def = 0;
-        width           = *wi;
-        height          = *he;
+        width = *wi;
+        height = *he;
 
         getParamInfo(V4L2_CID_GAIN, min, max, def);
         fprintf(stderr, "Gain parameter: min=%d max=%d default=%d\n", min, max, def);
@@ -145,11 +145,11 @@ int CCamera::init(const char* deviceName, int* wi, int* he, bool saveI)
         aviFile = AVI_open_input_file(deviceName, 1);
         *wi = width = AVI_video_width(aviFile);
         *he = height = AVI_video_height(aviFile);
-        height       = AVI_video_height(aviFile);
-        frameRate    = AVI_frame_rate(aviFile);
+        height = AVI_video_height(aviFile);
+        frameRate = AVI_frame_rate(aviFile);
         printf("AVI file opened, video dimensions are %i %i, framerate is %.2f\n", width, height, frameRate);
-        aviBuffer1    = (char*)malloc(4 * width * height);
-        aviBuffer2    = (unsigned char*)malloc(4 * width * height);
+        aviBuffer1 = (char*)malloc(4 * width * height);
+        aviBuffer2 = (unsigned char*)malloc(4 * width * height);
         readNextFrame = true;
     }
     if (cameraType == CT_FILELOADER) {
@@ -185,10 +185,10 @@ int CCamera::saveConfig(const char* filename)
         if (file == NULL)
             return -1;
         int exp, cntr, gain, brt;
-        exp  = getDeviceExposition();
+        exp = getDeviceExposition();
         cntr = getDeviceContrast();
         gain = getDeviceGain();
-        brt  = getDeviceBrightness();
+        brt = getDeviceBrightness();
         fprintf(file, "%i %i %i %i\n", exp, cntr, gain, brt);
         fclose(file);
     }
@@ -358,9 +358,9 @@ int CCamera::getDeviceBrightness()
 int CCamera::getDeviceExposition()
 {
     int rawValue = v4l2GetControl(videoIn, V4L2_CID_EXPOSURE_ABSOLUTE);
-    int value    = rawValue;
-    //sometimes, the cameras have the value in powers of 2, if this is the case, uncomment the following line
-    //value = (int)log2(rawValue);
+    int value = rawValue;
+    // sometimes, the cameras have the value in powers of 2, if this is the case, uncomment the following line
+    // value = (int)log2(rawValue);
     fprintf(stdout, "Exposition is set to %i-%i\n", value, rawValue);
     return value;
 }
@@ -371,8 +371,8 @@ int CCamera::setDeviceExposition(int value)
         autoexposure = false;
         setDeviceAutoExposure(1);
     }
-    //sometimes, the cameras have the value in powers of 2, if this is the case, uncomment the following line
-    //value = exp2(value);
+    // sometimes, the cameras have the value in powers of 2, if this is the case, uncomment the following line
+    // value = exp2(value);
     return v4l2SetControl(videoIn, V4L2_CID_EXPOSURE_ABSOLUTE, value);
 }
 
@@ -422,8 +422,8 @@ int CCamera::getParamInfo(const int paramType, int& min, int& max, int& default_
         fprintf(stderr, "Error getting camera info.\n");
         return -1;
     }
-    min         = queryctrl.minimum;
-    max         = queryctrl.maximum;
+    min = queryctrl.minimum;
+    max = queryctrl.maximum;
     default_val = queryctrl.default_value;
     return 0;
 }
@@ -431,7 +431,7 @@ int CCamera::getParamInfo(const int paramType, int& min, int& max, int& default_
 int CCamera::setDeviceAutoExposure(const int val)
 {
     struct v4l2_control control;
-    control.id    = V4L2_CID_EXPOSURE_AUTO;
+    control.id = V4L2_CID_EXPOSURE_AUTO;
     control.value = (int)val;
     int ret;
     if ((ret = ioctl(videoIn->fd, VIDIOC_S_CTRL, &control)) < 0) {
@@ -446,7 +446,7 @@ int CCamera::setDeviceAutoExposure(const int val)
 int CCamera::setDeviceWhiteBalanceAuto(const int val)
 {
     struct v4l2_control control;
-    control.id    = V4L2_CID_AUTO_WHITE_BALANCE;
+    control.id = V4L2_CID_AUTO_WHITE_BALANCE;
     control.value = (int)val;
     int ret;
     if ((ret = ioctl(videoIn->fd, VIDIOC_S_CTRL, &control)) < 0) {

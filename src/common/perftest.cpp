@@ -25,7 +25,7 @@ double average(std::vector<double> const& v)
 
 double standard_deviation(std::vector<double> const& v)
 {
-    double mean   = average(v);
+    double mean = average(v);
     double sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
     return std::sqrt(sq_sum / v.size() - mean * mean);
 }

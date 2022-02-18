@@ -9,7 +9,7 @@
 #define USE_STEREO_CAMERA false
 
 // Use inverted colors for processing.
-#define INVERT_COLORS true
+#define INVERT_COLORS false
 
 // Camera resolution
 #define CAMERA_WIDTH  1920 // Pixels
@@ -20,7 +20,7 @@
 #define AREA_LENGTH 1.00 // Meters
 
 // Amount of markers to track
-#define MARKER_COUNT 4
+#define MARKER_COUNT 3
 #define MAX_PATTERNS 12
 // Marker size
 #define CIRCLE_DIAMETER 0.075 // Meters
@@ -31,8 +31,8 @@
 #define SCREEN_WIDTH  1920
 #define SCREEN_HEIGHT 1080
 
-#define DEBUG_LEVEL   0
-#define DRAW_SEGMENTS false
+#define DEBUG_LEVEL   3
+#define DRAW_SEGMENTS true
 
 //// Debug settings
 #ifndef TEST_PERFORMANCE
